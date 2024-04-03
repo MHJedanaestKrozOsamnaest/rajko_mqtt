@@ -55,6 +55,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
+
   //ovde dodati kod za obradu poruke i aktivaciju sime
   if (onlyOnce == 0 && *payload == 'T') {
     step = 1;
@@ -104,10 +105,12 @@ void loop() {
     t2 = millis();
   }
 
+  // merenja vremena
   if((t2 - t1) > 10000){
     step = 0;
   }
 
+  //iskljucivanje motora
   if (step == 0) {
     analogWrite(M1_desno, 0);
     analogWrite(M2_desno, 0);
@@ -117,10 +120,12 @@ void loop() {
     // step = 1;
   }
 
+  //detekcija sa sick senzora
   if (digitalRead(SENS_SICK) == HIGH) {
     step = 3;
   } else if (step == 3) step = 1;
 
+  //ubrzavanje -- za menjanje nagiba rampe menjati delay
   if (step == 1) {
     if (dutyCycle < 255) {
       dutyCycle++;
@@ -130,6 +135,7 @@ void loop() {
     delay(6);                                         // Wait for a short duration
   }
 
+  //kocenje -- za menjanje nagiba rampe menjati delay
   if (step == 3) {
     analogWrite(M1_levo, dutyCycle * M1_PWM_FACTOR);  // Set PWM duty cycle
     analogWrite(M2_levo, dutyCycle * M2_PWM_FACTOR);  // Set PWM duty cycle
