@@ -18,11 +18,15 @@
 
 const char* ssid = "S10";
 const char* password = "kolemehos";
-const char* mqtt_server = "MQTT_BROKER_IP_ADDRESS";
+const char* mqtt_server = "192.168.137.125";
 
 char step = 0;  // 1 - accelorate, 2 - moving, 3 - stopping
 
 char dutyCycle = 0;
+
+char onlyOnce = 0;
+
+long int t1, t2;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -51,6 +55,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print((char)payload[i]);
   }
   Serial.println();
+  //ovde dodati kod za obradu poruke i aktivaciju sime
+  if (onlyOnce == 0 && *payload == 'T') {
+    step = 1;
+    onlyOnce = 1;
+    t1 = millis();
+  }
 }
 
 void reconnect() {
@@ -90,16 +100,26 @@ void loop() {
   }
   client.loop();
 
+  if(step != 0){
+    t2 = millis();
+  }
+
+  if((t2 - t1) > 10000){
+    step = 0;
+  }
+
   if (step == 0) {
     analogWrite(M1_desno, 0);
     analogWrite(M2_desno, 0);
-    delay(1500);
-    step = 1;
+    analogWrite(M1_levo, 0);
+    analogWrite(M2_levo, 0);
+    // delay(1500);
+    // step = 1;
   }
 
   if (digitalRead(SENS_SICK) == HIGH) {
     step = 3;
-  } else if (step = 3) step = 1;
+  } else if (step == 3) step = 1;
 
   if (step == 1) {
     if (dutyCycle < 255) {
