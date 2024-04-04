@@ -26,8 +26,6 @@ char dutyCycle = 0;
 
 char onlyOnce = 0;
 
-long int t1, t2;
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -60,7 +58,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (onlyOnce == 0 && *payload == 'T') {
     step = 1;
     onlyOnce = 1;
-    t1 = millis();
+  }
+  if(onlyOnce == 1 && *payload == 'N'){
+    step = 0;
   }
 }
 
@@ -100,15 +100,6 @@ void loop() {
     reconnect();
   }
   client.loop();
-
-  if(step != 0){
-    t2 = millis();
-  }
-
-  // merenja vremena
-  if((t2 - t1) > 10000){
-    step = 0;
-  }
 
   //iskljucivanje motora
   if (step == 0) {
